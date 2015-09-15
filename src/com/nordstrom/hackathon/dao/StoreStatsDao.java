@@ -70,7 +70,7 @@ public class StoreStatsDao {
 		return storeDetails;
 	}
 
-	public ItemsCount getOrderDetails(int strId) {
+	public ItemsCount getOrderDetails(int strId) throws CustomException {
 		// TODO Auto-generated method stub
 		ItemsCount itemsCount = new ItemsCount();
 		OrderDetails orderDetailsArray[] = new OrderDetails[3];
@@ -93,6 +93,40 @@ public class StoreStatsDao {
 		orderDetailsArray[2] = orderDetails3;
 
 		itemsCount.setItemCount(orderDetailsArray);
+		
+		Connection con = null;
+		Statement statement = null;
+		ResultSet rs = null;
+		try {
+			Class.forName("com.mysql.jdbc.Driver");		  
+			con = DriverManager.getConnection(  
+					"jdbc:mysql://localhost:3306/nordstromHackathon","root","sreejana"); 
+			statement = con.createStatement();
+			rs = statement.executeQuery("");
+		}catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			System.out.println(e);
+			throw new CustomException(100, e.getMessage());
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			System.out.println(e);
+			throw new CustomException(200, e.getMessage());
+		} catch (Exception e) {
+			// TODO: handle exception
+			System.out.println(e);
+			throw new CustomException(300, e.getMessage());
+		}finally{
+			try {
+				rs.close();
+				statement.close();
+				con.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				throw new CustomException(200, e.getMessage());
+			}
+
+		}
+		
 		return itemsCount;
 	}
 

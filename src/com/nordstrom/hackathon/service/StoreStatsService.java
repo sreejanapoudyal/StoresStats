@@ -15,7 +15,7 @@ public class StoreStatsService {
 		return strDetails;
 	}
 
-	public ItemsCount getOrderDetails(int strId) {
+	public ItemsCount getOrderDetails(int strId) throws CustomException {
 		// TODO Auto-generated method stub
 		ItemsCount itemsCount = dao.getOrderDetails(strId);
 		return itemsCount;

@@ -42,9 +42,19 @@ public class StoreStatsEndpoint {
 	@Path("/GetOrderDetails/{strId}")
 	@Produces("application/json")
 	public ItemsCount getOrderDetails(@PathParam("strId") int strId){
-		ItemsCount itemsCount = null;
-		if(strId != 0){
-			itemsCount = storeService.getOrderDetails(strId);
+		ItemsCount itemsCount = new ItemsCount();
+		try{
+			if(strId != 0){
+				itemsCount = storeService.getOrderDetails(strId);
+				itemsCount.setErrorCode(0);
+				itemsCount.setErrorDescription("Success");
+			}
+		} catch(CustomException e){
+			itemsCount.setErrorCode(e.getErrorCode());
+			itemsCount.setErrorDescription(e.getErrorDescription());
+		}catch (Exception e) {
+			itemsCount.setErrorCode(500);
+			itemsCount.setErrorDescription(e.getMessage());
 		}
 		return itemsCount;
 	}
