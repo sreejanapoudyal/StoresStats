@@ -5,6 +5,12 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.nordstrom.hackathon.Exception.CustomException;
 import com.nordstrom.hackathon.domain.ItemsCount;
@@ -13,8 +19,13 @@ import com.nordstrom.hackathon.domain.Store;
 
 public class StoreStatsDao {
 
-	public StoreStatsDao(){
+	private Map<String, String> orderTypeMap = new HashMap<String, String>();
 
+
+	public StoreStatsDao(){
+		orderTypeMap.put("WO", "Web Order Items");
+		orderTypeMap.put("ST", "Store Fulfilled Items");
+		orderTypeMap.put("BOPUS", "BOPUS Items");
 	}
 	public Store getStoreDetails(int strId) throws CustomException{
 		Store storeDetails = new Store();
@@ -74,7 +85,7 @@ public class StoreStatsDao {
 		// TODO Auto-generated method stub
 		ItemsCount itemsCount = new ItemsCount();
 		OrderDetails orderDetailsArray[] = new OrderDetails[3];
-		OrderDetails orderDetails1 = new OrderDetails();
+		/*	OrderDetails orderDetails1 = new OrderDetails();
 		orderDetails1.setName("StoreFulfilledItems");
 		orderDetails1.setAssignedItemsCount(21);
 		orderDetails1.setFulfilledItemsCount(22);
@@ -90,19 +101,35 @@ public class StoreStatsDao {
 		orderDetails3.setName("BOPUSItems");
 		orderDetails3.setAssignedItemsCount(21);
 		orderDetails3.setFulfilledItemsCount(22);
-		orderDetailsArray[2] = orderDetails3;
+		orderDetailsArray[2] = orderDetails3;*/
+		//	itemsCount.setItemCount(orderDetailsArray);
 
-		itemsCount.setItemCount(orderDetailsArray);
-		
 		Connection con = null;
 		Statement statement = null;
 		ResultSet rs = null;
 		try {
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");      
+			Date today = sdf.parse(sdf.format(new Date()));;
 			Class.forName("com.mysql.jdbc.Driver");		  
 			con = DriverManager.getConnection(  
 					"jdbc:mysql://localhost:3306/nordstromHackathon","root","sreejana"); 
 			statement = con.createStatement();
-			rs = statement.executeQuery("");
+			rs = statement.executeQuery("select RequestType, SUM(IF(ItemState='A',1,0)), SUM(IF(ItemState='F',1,0)) " 
+					+ "from ItemDetails where AssignedStore = " + strId + " group by RequestType");
+			int count = 0;
+			
+				while(rs.next()){
+					OrderDetails orderDetails = new OrderDetails();
+					orderDetails.setName(orderTypeMap.get(rs.getString(1)));
+					orderDetails.setAssignedItemsCount(rs.getInt(2));
+					orderDetails.setFulfilledItemsCount(rs.getInt(3));
+					orderDetailsArray[count] = orderDetails;
+					count++;
+				}
+			
+
+			itemsCount.setItemCount(orderDetailsArray);
+
 		}catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			System.out.println(e);
@@ -111,7 +138,11 @@ public class StoreStatsDao {
 			// TODO Auto-generated catch block
 			System.out.println(e);
 			throw new CustomException(200, e.getMessage());
-		} catch (Exception e) {
+		}  catch (ParseException e) {
+			// TODO Auto-generated catch block
+			System.out.println(e);
+			throw new CustomException(1000, e.getMessage());
+		}catch (Exception e) {
 			// TODO: handle exception
 			System.out.println(e);
 			throw new CustomException(300, e.getMessage());
@@ -126,7 +157,7 @@ public class StoreStatsDao {
 			}
 
 		}
-		
+
 		return itemsCount;
 	}
 
